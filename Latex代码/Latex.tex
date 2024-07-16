@@ -1,0 +1,84 @@
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb,amsthm}
+
+\title{Latex代码}
+\author{Li Wentao}
+\date{\today}
+
+\usepackage[linesnumbered,ruled]{algorithm2e}
+
+\begin{document}
+\maketitle
+
+\section{竞争权重}
+\renewcommand{\algorithmcfname}{算法}
+\renewcommand{\thealgocf}{1-1}
+\begin{algorithm}[H]
+
+  \SetAlgoNoLine %去掉横线
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+  \SetKwData{x}{$\xi^i_j$}
+  \SetKwData{l}{$len^i_j$}
+  \SetKwData{R}{$R^i_j$}
+  \SetKwData{W}{$W^i_j$}
+  \SetKwData{j}{$\tau^i_j$}
+  \SetKwData{a}{$\omega_a$}
+
+  \Input{ 利润需求集合\x,移动距离集合\l,承诺数据质量集合\R,质量贡献$\alpha$,报价贡献$\beta$,质价比例系数$\gamma$ }
+  \Output{ 竞争权重集合\W }
+
+  \For{$\j \in \tau_i$}{
+    \For{$\a \in \omega$}{
+      $Eb^i_{j,a} = e^{\lambda_i*R^i_{j,a}}+e^{\mu_i*len^i_{j,a}}-2$\;
+      $P^i_{j,a} = Eb^i_{j,a}+\xi^i_{j,a}$\;
+      $W^i_j[a] \leftarrow \frac{\alpha*R^i_{j,a}}{\beta*P^i_{j,a}}=\gamma*\frac{R^i_{j,a}}{e^{\lambda_i*R^i_{j,a}}+e^{\mu_i*len^i_{j,a}}-2+\xi^i_{j,a}}$\;
+    }
+  }
+  \Return{\W}
+
+\end{algorithm}
+
+\section{信任工人分配算法}
+\renewcommand{\algorithmcfname}{算法}
+\renewcommand{\thealgocf}{2-1}
+\begin{algorithm}[H]
+
+  \SetAlgoNoLine %去掉横线
+  \SetKwInput{KwData}{辅助数组}
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+  \SetKwData{u}{$\omega_u$}
+  \SetKwData{v}{$\omega_v$}
+
+  \Input{ 有向无权图$G^i$ }
+  \Output{ 可信工人任务分配二分图$G^i_t$ }
+  \KwData{ 记录数组$vis$,匹配数组$match$ }
+
+  \SetKwFunction{Dfs}{dfs}
+  \SetKwProg{Fn}{}{}{}
+  \Fn{int \Dfs{int $\u$}}{
+    \For{\v $\in G^i[\u]$}{
+      \If{\v $\in vis$}{ continue; }
+      $add \enspace \v \enspace to \enspace vis$\;
+      \If{$\v \notin match$ or \Dfs{match{\rm[$\v$]}}}{
+        $match[\v] \leftarrow \u$\;
+        \Return{$\v$}
+      }
+    }
+    \Return{$0$};
+  }
+
+  \For{$\u \in \omega$}{
+    $vis \leftarrow \emptyset$\;
+    $\v \leftarrow \Dfs{$\u$}$\;
+    \If{$\v$}{
+      $G^i_t[\u] \leftarrow \v$\;
+    }
+  }
+  \caption{信任工人分配算法}
+\end{algorithm}
+
+\end{document}
