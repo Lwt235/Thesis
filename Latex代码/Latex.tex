@@ -14,7 +14,7 @@
 
 \section{竞争权重}
 \renewcommand{\algorithmcfname}{算法}
-\renewcommand{\thealgocf}{1-1}
+\renewcommand{\thealgocf}{4-1}
 \begin{algorithm}[H]
 
   \SetAlgoNoLine %去掉横线
@@ -32,18 +32,17 @@
 
   \For{$\j \in \tau_i$}{
     \For{$\a \in \omega$}{
-      $Eb^i_{j,a} = e^{\lambda_i*R^i_{j,a}}+e^{\mu_i*len^i_{j,a}}-2$\;
-      $P^i_{j,a} = Eb^i_{j,a}+\xi^i_{j,a}$\;
-      $W^i_j[a] \leftarrow \frac{\alpha*R^i_{j,a}}{\beta*P^i_{j,a}}=\gamma*\frac{R^i_{j,a}}{e^{\lambda_i*R^i_{j,a}}+e^{\mu_i*len^i_{j,a}}-2+\xi^i_{j,a}}$\;
+      $Eb^i_{j,a} = e^{\lambda_i*R^i_{j,a}}+e^{\mu_i*len^i_{j,a}}-2$\\
+      $P^i_{j,a} = Eb^i_{j,a}+\xi^i_{j,a}$\\
+      $W^i_j[a] \leftarrow \frac{\alpha*R^i_{j,a}}{\beta*P^i_{j,a}}=\gamma*\frac{R^i_{j,a}}{e^{\lambda_i*R^i_{j,a}}+e^{\mu_i*len^i_{j,a}}-2+\xi^i_{j,a}}$\\
     }
   }
-  \Return{\W}
   \caption{竞争权重}
 \end{algorithm}
 
-\section{信任工人分配算法}
+\section{TWPM算法}
 \renewcommand{\algorithmcfname}{算法}
-\renewcommand{\thealgocf}{2-1}
+\renewcommand{\thealgocf}{4-2}
 \begin{algorithm}[H]
 
   \SetAlgoNoLine %去掉横线
@@ -51,34 +50,149 @@
   \SetKwInOut{Input}{输入}
   \SetKwInOut{Output}{输出}
   \SetKwData{u}{$\omega_u$}
-  \SetKwData{v}{$\omega_v$}
+  \SetKwData{v}{$\tau^i_v$}
 
-  \Input{ 有向无权图$G^i$ }
-  \Output{ 可信工人任务分配二分图$G^i_t$ }
-  \KwData{ 记录数组$vis$,匹配数组$match$ }
+  \Input{ 参与者\u }
+  \Output{ 匹配任务\v(无匹配则为0) }
 
-  \SetKwFunction{Dfs}{dfs}
-  \SetKwProg{Fn}{}{}{}
-  \Fn{int \Dfs{int $\u$}}{
     \For{\v $\in G^i[\u]$}{
-      \If{\v $\in vis$}{ continue; }
-      $add \enspace \v \enspace to \enspace vis$\;
-      \If{$\v \notin match$ or \Dfs{match{\rm[$\v$]}}}{
-        $match[\v] \leftarrow \u$\;
+      \If{\v has been visit}{ continue\\ }
+      $set$ \v $is$ $visited$\\
+      \If{\v has not be matched or TWPM$(match{\rm[\v]})$}{
+        $match[\v] \leftarrow \u$\\
         \Return{$\v$}
       }
     }
-    \Return{$0$};
-  }
 
-  \For{$\u \in \omega$}{
-    $vis \leftarrow \emptyset$\;
-    $\v \leftarrow \Dfs{$\u$}$\;
-    \If{$\v$}{
-      $G^i_t[\u] \leftarrow \v$\;
+  \caption{TWPM算法(Task Worker Perfect Match)}
+\end{algorithm}
+
+\section{信任工人分配算法}
+\renewcommand{\algorithmcfname}{算法}
+\renewcommand{\thealgocf}{4-3}
+\begin{algorithm}[H]
+
+  \SetAlgoNoLine %去掉横线
+  \SetKwInput{KwData}{辅助数组}
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+  \SetKwData{u}{$\omega^t_u$}
+  \SetKwData{v}{$\tau_v$}
+  \SetKwData{W}{$W^i_j$}
+
+  \Input{ 初始任务图$G^i$,信任工人集合$\omega^t$ }
+  \Output{ 信任工人任务分配图$G^i_t$ }
+  \KwData{ 记录数组$vis$,匹配数组$match$ }
+
+  \For{$\u \in \omega^t$}{
+    $initial$ $vis$ $,$ $the$ $elements$ $are$ $false$\\
+    $\v \leftarrow TWPM(\u)$\\
+    \If{$\v$ is not zero}{
+      $G^i_t[\u] \leftarrow \v$\\
     }
   }
   \caption{信任工人分配算法}
+\end{algorithm}
+
+
+\section{剩余工人分配算法}
+\renewcommand{\algorithmcfname}{算法}
+\renewcommand{\thealgocf}{4-4}
+\begin{algorithm}[H]
+
+  \SetAlgoNoLine %去掉横线
+  \SetKwInput{KwData}{辅助数组}
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+  \SetKwData{u}{$\tau^i_u$}
+  \SetKwData{v}{$\omega^i_v$}
+  \SetKwData{W}{$W^i$}
+
+  \Input{ 初始任务图$G^i$,信任工人分配图$G^i_t$,第i次任务$T^i$,成本因子$Cf_i$,分辨强度$Re_i$,竞争权重集合$W^i$ }
+  \Output{ 工人任务分配图$G^i_f$ }
+  \KwData{ 匹配数组$match$ }
+
+  $G^i_f \leftarrow G^i_t$\\
+  \For{$\u \in T^i$}{
+    $initial$ $\omega^i_u$ $as$ $an$ $empty$ $set$\\
+    \For{$\v \in G^i[\u]$ $is$ $not$ $matched$}{
+      $add$ \v $to$ $\omega^i_u$\\
+    }
+    \uIf{$G^i_t[\u]$ $is$ $empty$}{
+      \For{ $\v \in \omega^i_u$ }{
+        $G^i_f[\v] \leftarrow \u$\\
+      }
+    }
+    \Else{
+      $sort$ $\omega^i_u$ $by$ \W $from$ $largest$ $to$ $smallest$\\
+      $let$ $L$ $equals$ $to$ $the$ $length$ $of$ $T_u$\\
+      \For{ $\v \in \omega^i_u$ }{
+        \If{ $cnt > \frac{Re_i}{Re_i+Cf_i} * L$ }{ $break$ }
+        $G^i_f[\v] \leftarrow \u$\\
+        $cnt = cnt + 1$\\
+      }
+    }
+  }
+  \caption{剩余工人分配算法}
+\end{algorithm}
+
+
+\section{RDD算法}
+\renewcommand{\algorithmcfname}{算法}
+\renewcommand{\thealgocf}{4-5}
+\begin{algorithm}[H]
+
+  \SetAlgoNoLine %去掉横线
+  \SetKwInput{KwData}{辅助数组}
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+  \SetKwData{u}{$\omega^t_u$}
+  \SetKwData{v}{$\tau_v$}
+  \SetKwData{W}{$W^i_j$}
+
+  \Input{ 数据集合$Da^i_j$,迭代阈值$e$ }
+  \Output{ 标准数据$Ds^i$ }
+  \KwData{ 权重数组$w^i$ }
+
+  $Ds^i = Da^i_1$\\
+  $Ds^i_f = Ds^i + e$\\
+  \While{$\lvert Ds^i-Ds^i_f \rvert \geq e $}{
+    $ S^i \leftarrow \sum d(Da^i_{j,a},Ds^i) $\\
+    \For{$Da^i_{j,a} \in Da^i_j$}{
+      $ w^i_a = \log{S^i} - \log{d(Da^i_{j,a},Ds^i)} $\\
+    }
+    $ Ds^i_f \leftarrow Ds^i $\\
+    $ Ds^i = \frac{\sum w^i_a*Da^i_{j,a}}{\sum w^i_a} $\\
+  }
+
+  \caption{RDD算法(Real Data Discovery)}
+\end{algorithm}
+
+
+\section{信任度更新算法}
+\renewcommand{\algorithmcfname}{算法}
+\renewcommand{\thealgocf}{4-6}
+\begin{algorithm}[H]
+
+  \SetAlgoNoLine %去掉横线
+  \SetKwInput{KwData}{辅助数组}
+  \SetKwInOut{Input}{输入}
+  \SetKwInOut{Output}{输出}
+
+  \Input{ 个人提交数据$Da^i_{j,a}$,偏差阈值$D^i_m$,低强度因子$f_l$,高强度因子$f_h$(,标准数据$Ds^i_j$) }
+  \Output{ 信任度更新$tr_a$ }
+
+  \uIf{$Ds^i_j$ $doesn't$ $exist$}{
+    $Ds^i_j \leftarrow RDD(Da^i_j)$\\
+    $D^i_a = \lvert \frac{Da^i_{j,a} - Ds^i_j}{Ds^i_j}  \rvert$\\
+    $tr_a = f_l * e^{D^i_m-D^i_a}$
+  }
+  \Else{
+    $D^i_a = \lvert \frac{Da^i_{j,a} - Ds^i_j}{Ds^i_j}  \rvert$\\
+    $tr_a = f_h * e^{D^i_m-D^i_a}$
+  }
+
+  \caption{信任度更新算法}
 \end{algorithm}
 
 \end{document}
